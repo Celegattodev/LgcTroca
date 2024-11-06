@@ -1,4 +1,5 @@
 public class Troca {
+    public static int nTrocas;
     private Usuario usuarioOfertante;
     private Usuario usuarioReceptor;
     private Livro livroOfertante;
@@ -23,6 +24,7 @@ public class Troca {
         this.usuarioReceptor = usuarioReceptor;
         this.livroOfertante = livroOfertante;
         this.livroReceptor = livroReceptor;
+        nTrocas++;
     }
 
     // Getters e Setters
@@ -53,40 +55,35 @@ public class Troca {
     public StatusTroca getStatusTroca() {
         return statusTroca;
     }
+    public int getnTrocas() {
+        return nTrocas;
+    }
 
     // Métodos para alterar o status da troca
     public void setStatusSolicitada() {
         this.statusTroca = StatusTroca.SOLICITADA;
     }
-
     public void setStatusConfirmada() {
         this.statusTroca = StatusTroca.CONFIRMADA;
     }
-
     public void setStatusRecusada() {
         this.statusTroca = StatusTroca.RECUSADA;
     }
-
     public void setStatusCancelada() {
         this.statusTroca = StatusTroca.CANCELADA;
     }
-
     public void setStatusAguardandoEnvio() {
         this.statusTroca = StatusTroca.AGUARDANDO_ENVIO;
     }
-
     public void setStatusEmProcesso() {
         this.statusTroca = StatusTroca.EM_PROCESSO;
     }
-
     public void setStatusConcluida() {
         this.statusTroca = StatusTroca.CONCLUIDA;
     }
-
     public void setStatusAguardandoResposta() {
         this.statusTroca = StatusTroca.AGUARDANDO_RESPOSTA;
     }
-
 
     @Override
     public String toString() {

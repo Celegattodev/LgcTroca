@@ -1,6 +1,7 @@
 import java.util.UUID;
 
 public class Livro {
+    public static int nLivros;
     private String id;
     private String titulo;
     private String autor;
@@ -21,6 +22,7 @@ public class Livro {
         this.autor = autor;
         this.condicao = condicao;
         this.genero = genero;
+        nLivros++;
     }
 
     // Getters e Setters
@@ -47,5 +49,8 @@ public class Livro {
     }
     public void setGenero(GeneroLivro genero) {
         this.genero = genero;
+    }
+    public int getnLivros() {
+        return nLivros;
     }
 }

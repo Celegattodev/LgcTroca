@@ -1,4 +1,3 @@
-import javax.swing.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -6,19 +5,22 @@ import java.util.UUID;
 import java.util.Scanner;
 
 public class Usuario {
+    public static int nUsuarios;
     private final String id;
     private final LocalDateTime dataCadastro;
     private String nome;
     private String senha;
     private String email;
-    private String endereco;
+    private Endereco endereco;
     private String telefone;
     private Set<Livro> livros; // conjunto de livros na posse do usuário
     private int quantidadeLivros;
-    private int alertas;
+    private int nAlertas;
+    private boolean sobAlerta;
+    private boolean is_banned;
 
     // Construtor
-    public Usuario(String nome, String senha, String email, String endereco, String telefone) {
+    public Usuario(String nome, String senha, String email, Endereco endereco, String telefone) {
         this.id = UUID.randomUUID().toString(); // Gera um ID automaticamente
         this.dataCadastro = LocalDateTime.now(); // Define a data de cadastro como a data e hora atuais
         this.nome = nome;
@@ -28,7 +30,10 @@ public class Usuario {
         this.telefone = telefone;
         this.livros = new HashSet<>(); // Inicializa o conjunto de livros
         this.quantidadeLivros = 0;
-        this.alertas = 0;
+        this.nAlertas = 0;
+        this.sobAlerta = false;
+        this.is_banned = false;
+        nUsuarios++;
     }
 
     // Getters
@@ -47,7 +52,7 @@ public class Usuario {
     public String getEmail() {
         return email;
     }
-    public String getEndereco() {
+    public Endereco getEndereco() {
         return endereco;
     }
     public String getTelefone() {
@@ -59,8 +64,17 @@ public class Usuario {
     public int getQuantidadeLivros() {
         return quantidadeLivros;
     }
-    public int getAlertas() {
-        return alertas;
+    public int getNAlertas() {
+        return nAlertas;
+    }
+    public boolean getSobAlerta() {
+        return sobAlerta;
+    }
+    public boolean getIs_Banned() {
+        return is_banned;
+    }
+    public int getnUsuarios() {
+        return nUsuarios;
     }
 
     // Setters
@@ -73,69 +87,134 @@ public class Usuario {
     public void setEmail(String email) {
         this.email = email;
     }
-    public void setEndereco(String endereco) {
+    public void setEndereco(Endereco endereco) {
         this.endereco = endereco;
     }
     public void setTelefone(String telefone) {
         this.telefone = telefone;
     }
+    public void setNAlertas(int nAlertas) {
+        this.nAlertas = nAlertas;
+    }
+    public void setSobAlerta(boolean sobAlerta) {
+        this.sobAlerta = sobAlerta;
+    }
+    public void setIs_Banned(boolean is_banned) {
+        this.is_banned = is_banned;
+    }
 
+    // Métodos comuns
     public void addLivro(Livro livro) {
+        if (is_banned) {
+            System.out.println("Ação não permitida. O usuário está banido.");
+            return;
+        }
         this.livros.add(livro);
         this.quantidadeLivros++;
     }
     public void removeLivro(Livro livro) {
+        if (is_banned) {
+            System.out.println("Ação não permitida. O usuário está banido.");
+            return;
+        }
         this.livros.remove(livro);
         this.quantidadeLivros--;
     }
-
-    // Métodos comuns
-    public boolean verificaQtdMinimoLivros(Usuario usuario) {
-        return usuario.getQuantidadeLivros() > 0;
-    } // Usuário precisa ter pelo menos um livro
-
-    public boolean verificaExistenciaAlerta(Usuario usuario) {
-        return usuario.getAlertas() == 0;
-    } // Usuário não pode ter alerta. (DEVE SER MODIFICADO)
-
-    public boolean verificaRequisitoTroca(Usuario usuario) { // Fazer o TryCatch
-        if (verificaQtdMinimoLivros(usuario)) {
-            return verificaExistenciaAlerta(usuario);
+    public void atualizarInformacoes(String novoNome, String novaSenha, String novoEmail, Endereco novoEndereco, String novoTelefone) {
+        if (novoNome != null && !novoNome.isEmpty()) {
+            setNome(novoNome);
         }
-        return false;
-    } //verificaExistenciaAlerta + verificaQtdMinimoLivros
+        if (novaSenha != null && !novaSenha.isEmpty()) {
+            setSenha(novaSenha);
+        }
+        if (novoEmail != null && !novoEmail.isEmpty()) {
+            setEmail(novoEmail);
+        }
+        if (novoEndereco != null) {
+            setEndereco(novoEndereco);
+        }
+        if (novoTelefone != null && !novoTelefone.isEmpty()) {
+            setTelefone(novoTelefone);
+        }
+        System.out.println("Informações atualizadas com sucesso.");
+    }
+
+    //VERIFICAÇÕES PRÉ-TROCA
+    //True = passou na verificação
+    public boolean verificaQtdMinimoLivros(Usuario usuario) {
+        if (usuario.getQuantidadeLivros() > 0){
+            return true;
+        } return false;
+    } // Usuário precisa ter pelo menos um livro
+    public boolean verificaSobAlerta(Usuario usuario) {
+        if (usuario.getSobAlerta() == false) {
+            return true;
+        } return false;
+    }
+    public boolean verificaRequisitoTroca(Usuario usuario) {
+        if (verificaQtdMinimoLivros(usuario)) {
+            return verificaSobAlerta(usuario);
+        } return false;
+    } //verificaSobAlerta + verificaQtdMinimoLivros
 
     public void solicitarTroca(Usuario usuarioOfertante, Usuario usuarioReceptor, Livro livroOfertante, Livro livroReceptor) {
-        if (verificaRequisitoTroca(usuarioOfertante)) {
-            if (verificaRequisitoTroca(usuarioReceptor)) {
-                if (usuarioOfertante.getLivros().contains(livroOfertante)) {
-                    if (usuarioReceptor.getLivros().contains(livroReceptor)) {
-                        Troca troca1 = new Troca(usuarioOfertante, usuarioReceptor, livroOfertante, livroReceptor);
-
-                        troca1.setStatusSolicitada(); //Troca solicitada
-                        troca1.setStatusAguardandoResposta();//Aguardando resposta
-                        troca1.setStatusConfirmada();//usuarioReceptor aceita
-                        // Remover os livros das coleções atuais
-                        usuarioOfertante.removeLivro(livroOfertante);
-                        usuarioReceptor.removeLivro(livroReceptor);
-                        troca1.setStatusAguardandoEnvio();//Aguardando envio do cod
-                        Scanner scanner = new Scanner(System.in);
-                        System.out.println("Código de envio: "); //VERIFICAR CÓDIGO DE ENVIO??
-                        String codEnvio = scanner.next();
-                        troca1.setStatusEmProcesso();//livros enviados
-                        troca1.setStatusConcluida();//livros recebidos
-                        // Adicionar os livros às novas coleções
-                        usuarioOfertante.addLivro(livroReceptor);
-                        usuarioReceptor.addLivro(livroOfertante);
-
-                        System.out.println("Troca realizada com sucesso!");
-                    }
-                    System.out.println("Troca não pode ser realizada. Usuário Receptor não tem o livro especificado.");
-                }
-                System.out.println("Troca não pode ser realizada. Usuário Ofertante não tem o livro especificado.");
-            }
-            System.out.println("Troca não pode ser realizada. Usuário Receptor não possui livros ou está sobre alerta.");
+        if (is_banned) {
+            System.out.println("Ação não permitida. O usuário está banido.");
+            return;
         }
-        System.out.println("Troca não pode ser realizada. Usuário Ofertante não possui livros ou está sobre alerta");
+
+        if (!verificaRequisitoTroca(usuarioOfertante)) {
+            System.out.println("Troca não pode ser realizada. Usuário Ofertante não possui livros ou está sobre alerta.");
+            return;
+        }
+
+        if (!verificaRequisitoTroca(usuarioReceptor)) {
+            System.out.println("Troca não pode ser realizada. Usuário Receptor não possui livros ou está sobre alerta.");
+            return;
+        }
+
+        if (!usuarioOfertante.getLivros().contains(livroOfertante)) {
+            System.out.println("Troca não pode ser realizada. Usuário Ofertante não tem o livro especificado.");
+            return;
+        }
+
+        if (!usuarioReceptor.getLivros().contains(livroReceptor)) {
+            System.out.println("Troca não pode ser realizada. Usuário Receptor não tem o livro especificado.");
+            return;
+        }
+
+        // Inicializar a troca e atualizar o status
+        Troca troca = new Troca(usuarioOfertante, usuarioReceptor, livroOfertante, livroReceptor);
+        troca.setStatusSolicitada();
+        troca.setStatusAguardandoResposta();
+
+        // Simular aceitação da troca pelo receptor
+        troca.setStatusConfirmada();
+
+        // Remover os livros das coleções atuais
+        usuarioOfertante.removeLivro(livroOfertante);
+        usuarioReceptor.removeLivro(livroReceptor);
+
+        // Aguardar e validar código de envio
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.print("Código de envio para Usuário Ofertante: ");
+            String codEnvio1 = scanner.next();
+
+            System.out.print("Código de envio para Usuário Receptor: ");
+            String codEnvio2 = scanner.next();
+
+            // Continuar o processo de troca
+            troca.setStatusEmProcesso();
+            troca.setStatusConcluida();
+
+            // Adicionar os livros às novas coleções
+            usuarioOfertante.addLivro(livroReceptor);
+            usuarioReceptor.addLivro(livroOfertante);
+
+            System.out.println("Troca realizada com sucesso!");
+        } finally {
+            scanner.close();
+        }
     }
 }
